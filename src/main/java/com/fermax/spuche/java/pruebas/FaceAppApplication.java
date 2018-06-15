@@ -1,92 +1,76 @@
 package com.fermax.spuche.java.pruebas;
 
-import java.net.URI;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import java.util.Scanner;
 
+import org.apache.http.client.HttpClient;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+@SuppressWarnings("deprecation")
 @SpringBootApplication
 public class FaceAppApplication implements CommandLineRunner {
 
-    // Replace <Subscription Key> with your valid subscription key.
-    private static final String subscriptionKey = "XXXXX";
+    // Replace XXXXXXXXXXX with your valid subscription key.
+    private static final String subscriptionKey = "XXXXXXXXXXXX";
 
-    // NOTE: You must use the same region in your REST call as you used to
-    // obtain your subscription keys. For example, if you obtained your
-    // subscription keys from westus, replace "westcentralus" in the URL
-    // below with "westus".
-    //
-    // Free trial subscription keys are generated in the westcentralus region. If you
-    // use a free trial subscription key, you shouldn't need to change this region.
-    private static final String uriBase =
-        "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/detect";
-
+    // Set here the URL belonging to the image to analyze
     private static final String imageWithFaces =
-    			"{\"url\":\"https://images.csmonitor.com/csmarchives/2011/10/1007_Wozniak.jpg?alias=standard_600x400\"}";  //Imagen de juventud de Wozniak y Jobs
-    		//"{\"url\":\"https://upload.wikimedia.org/wikipedia/commons/0/01/Bill_Gates_July_2014.jpg\"}";	//Imagen de Bill Gates
-        //"{\"url\":\"https://upload.wikimedia.org/wikipedia/commons/c/c3/RH_Louise_Lillian_Gish.jpg\"}";    //Imagen de Louise Lillian Gish
-
+    			"{\"url\":\"https://images.csmonitor.com/csmarchives/2011/10/1007_Wozniak.jpg?alias=standard_600x400\"}";
+    
+    /*
+     * Alternative images:
+     * Bill Gates: "https://upload.wikimedia.org/wikipedia/commons/0/01/Bill_Gates_July_2014.jpg"
+     * Luise Lillian Gish: "https://upload.wikimedia.org/wikipedia/commons/c/c3/RH_Louise_Lillian_Gish.jpg"
+     */
+    
+    // Facial attributes to analyze
     private static final String faceAttributes =
         "age,gender,headPose,smile,facialHair,glasses,emotion,hair,makeup,occlusion,accessories,blur,exposure,noise";	
 	
+    
+    
+    /*
+     * METHODS
+     */
+    
+    // Spring substitute of the main method
 	public void run(String ... args)
 	{
-		HttpClient httpclient = new DefaultHttpClient();
-
+		// Scanner de teclado. En el futuro se puede sustituir por algo mejor
+		Scanner keyboard = new Scanner(System.in);
+		
         try
         {
-            URIBuilder builder = new URIBuilder(uriBase);
+        	System.out.println("********************************************************");
+        	System.out.println("*  APLICACION DE DETECCION FACIAL CON MOTOR FACE API   *");
+        	System.out.println("********************************************************");
+        	System.out.println();
+        	System.out.println();
+        	System.out.println();
+        	System.out.println("Modos de empleo:");
+        	System.out.println("1. Deteccion facial");
+        	
+        	System.out.println();
+        	System.out.println("Introduzca la opcion deseada: ");
+        	int opcion = keyboard.nextInt();
+        	
+        	switch (opcion)
+        	{
+        		case 1:		FaceMethods.faceDetect(imageWithFaces, faceAttributes, subscriptionKey);
+        					break;
+        				
+        		case 2:		FaceList facesList = new FaceList("listaPrueba", subscriptionKey);
+        					break;
+        				
+        		default:	System.out.println("Opcion invalida. Autodestruccion en 5 segundos");
+        					break;
+        	}
+        	
+        	keyboard.close();
 
-            // Request parameters. All of them are optional.
-            builder.setParameter("returnFaceId", "true");
-            builder.setParameter("returnFaceLandmarks", "false");
-            builder.setParameter("returnFaceAttributes", faceAttributes);
-
-            // Prepare the URI for the REST API call.
-            URI uri = builder.build();
-            HttpPost request = new HttpPost(uri);
-
-            // Request headers.
-            request.setHeader("Content-Type", "application/json");
-            request.setHeader("Ocp-Apim-Subscription-Key", subscriptionKey);
-
-            // Request body.
-            StringEntity reqEntity = new StringEntity(imageWithFaces);
-            request.setEntity(reqEntity);
-
-            // Execute the REST API call and get the response entity.
-            HttpResponse response = httpclient.execute(request);
-            HttpEntity entity = response.getEntity();
-
-            if (entity != null)
-            {
-                // Format and display the JSON response.
-                System.out.println("REST Response:\n");
-
-                String jsonString = EntityUtils.toString(entity).trim();
-                if (jsonString.charAt(0) == '[') {
-                    JSONArray jsonArray = new JSONArray(jsonString);
-                    System.out.println(jsonArray.toString(2));
-                }
-                else if (jsonString.charAt(0) == '{') {
-                    JSONObject jsonObject = new JSONObject(jsonString);
-                    System.out.println(jsonObject.toString(2));
-                } else {
-                    System.out.println(jsonString);
-                }
-            }
         }
+        
         catch (Exception e)
         {
             // Display error message.
@@ -94,6 +78,9 @@ public class FaceAppApplication implements CommandLineRunner {
         }
 	}
 	
+	
+	
+	// Main method. It just calls to Spring Boot
 	public static void main(String[] args) {
 		SpringApplication.run(FaceAppApplication.class, args);
 	}
