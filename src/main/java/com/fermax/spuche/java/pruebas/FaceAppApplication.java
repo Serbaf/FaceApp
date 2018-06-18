@@ -1,28 +1,19 @@
 package com.fermax.spuche.java.pruebas;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Scanner;
 
-import org.apache.http.client.HttpClient;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SuppressWarnings("deprecation")
 @SpringBootApplication
 public class FaceAppApplication implements CommandLineRunner {
 
 	// Replace XXXXXXXXXXX with your valid subscription key.
-	private static final String subscriptionKey = "XXXXXXXXXXXXXXXXXXXXXXXXXXXX";
-
-	// Set here the URL belonging to the image to analyze
-	private static final String imageWithFaces = "{\"url\":\"https://images.csmonitor.com/csmarchives/2011/10/1007_Wozniak.jpg?alias=standard_600x400\"}";
-
-	/*
-	 * Alternative images: Bill Gates:
-	 * "https://upload.wikimedia.org/wikipedia/commons/0/01/Bill_Gates_July_2014.jpg"
-	 * Luise Lillian Gish:
-	 * "https://upload.wikimedia.org/wikipedia/commons/c/c3/RH_Louise_Lillian_Gish.jpg"
-	 */
+	private static final String subscriptionKey = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
 
 	// Facial attributes to analyze
 	private static final String faceAttributes = "age,gender,headPose,smile,facialHair,glasses,emotion,hair,makeup,occlusion,accessories,blur,exposure,noise";
@@ -107,7 +98,7 @@ public class FaceAppApplication implements CommandLineRunner {
 			System.out.println("**********************");
 			System.out.println();
 			System.out.println("1. Detect face");
-			System.out.println("2. Find similar **not implemented**");
+			System.out.println("2. Find similar");
 			System.out.println("3. Group **not implemented**");
 			System.out.println("4. Identify **not implemented**");
 			System.out.println("5. Verify **not implemented**");
@@ -119,15 +110,54 @@ public class FaceAppApplication implements CommandLineRunner {
 
 			switch (opcion) {
 			case 1:
-				FaceMethods.faceDetect(imageWithFaces, faceAttributes, subscriptionKey);
+				System.out.println("Enter the URL of the image you want to analyze:");
+				keyboard.nextLine();
+				if (keyboard.hasNextLine()) {
+					String image = keyboard.nextLine();
+					FaceMethods.faceDetect(image, faceAttributes, subscriptionKey);
+				} else {
+					throw new Exception("No hay imagen");
+				}
+				
 				break;
 
 			case 2:
-				System.out.println("Find similar - Not implemented yet");
+				String image, listId;
+				System.out.println("Enter the ID of the image you want to analyze:");
+				keyboard.nextLine();
+				if (keyboard.hasNextLine()) {
+					image = keyboard.nextLine();
+				} else {
+					throw new Exception("No hay imagen");
+				}
+				System.out.println("Enter the ID of the list with which you want to compare:");
+				if(keyboard.hasNextLine()) {
+					listId = keyboard.nextLine();
+				}else {
+					throw new Exception("No hay lista");
+				}
+				
+				FaceMethods.findSimilar(image, listId, subscriptionKey);
 				break;
 
 			case 3:
-				System.out.println("Group - Not implemented yet");
+				List<String> faceIdList = new ArrayList<>();
+				
+				System.out.println("To create a group at least two face IDs are needed (you can obtain them with Face Detect)");
+				System.out.println("Do you want to create a group? (Y/N)");
+				char ans = keyboard.next().charAt(0);
+				while(ans=='Y'||ans=='y')
+				{
+					System.out.println("Enter the ID of a picture:");
+					keyboard.nextLine();
+					faceIdList.add(keyboard.nextLine());
+					System.out.println("Do you continue adding elements? (Y/N)");
+					ans = keyboard.next().charAt(0);
+				}
+				faceIdList.toArray();
+				
+				//FaceMethods.groupFaces(arrayFaces, azureKey);
+				
 				break;
 
 			case 4:
@@ -167,18 +197,25 @@ public class FaceAppApplication implements CommandLineRunner {
 			System.out.println("4. Delete face");
 			System.out.println("5. Get info from a list");
 			System.out.println("6. List all the lists");
-			System.out.println("7. Update **not implemented**");
+			System.out.println("7. Update a list");
 			System.out.println("0. Quit");
 
 			System.out.println();
 			System.out.println("Introduzca la opcion deseada: ");
 			int opcion = keyboard.nextInt();
 
-			String input1, input2;
+			String input1, input2, input3;
 
 			switch (opcion) {
 			case 1:
-				FaceList faceList = new FaceList("facelist1", subscriptionKey);
+				System.out.println("Enter the id of the new list:");
+				keyboard.nextLine(); // To consume the LF
+				input1 = keyboard.nextLine();
+				System.out.println("Enter a name for the list:");
+				input2 = keyboard.nextLine();
+				System.out.println("Enter the user data for the list:");
+				input3 = keyboard.nextLine();
+				new FaceList(input1, input2, input3, subscriptionKey);
 				break;
 
 			case 2:
@@ -186,7 +223,14 @@ public class FaceAppApplication implements CommandLineRunner {
 				input1 = keyboard.next();
 				System.out.println("Please input the URL of the picture: ");
 				input2 = keyboard.next();
-				FaceList.addImage(input1, input2, subscriptionKey);
+				System.out.println("Please input a description of the image (you can leave this empty)");
+				keyboard.nextLine();
+				if(keyboard.hasNextLine()) {
+					input3 = keyboard.nextLine();
+				} else {
+					throw new Exception();
+				}
+				FaceList.addImage(input1, input2, input3, subscriptionKey);
 				break;
 
 			case 3:
@@ -214,13 +258,21 @@ public class FaceAppApplication implements CommandLineRunner {
 				break;
 
 			case 7:
-				System.out.println("Update - Not implemented yet");
+				System.out.println("Enter the id of a list:");
+				keyboard.nextLine(); // To consume the LF
+				input1 = keyboard.nextLine();
+				System.out.println("Enter a new name for that list:");
+				input2 = keyboard.nextLine();
+				System.out.println("Enter the user data for the list:");
+				input3 = keyboard.nextLine();
+				FaceList.updateList(input1, input2, input3, subscriptionKey);
 				break;
 
 			case 0:
 				return;
 
 			default:
+
 				System.out.println("Opcion invalida. Autodestruccion en 5 segundos");
 				break;
 			}
